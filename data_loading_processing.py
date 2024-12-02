@@ -96,17 +96,19 @@ def get_cub_classification_dataloaders(pkl_dir: str, batch_size: int, num_worker
 
 def get_cub_data(pkl_dir: str):
     train_data = load_data(pkl_dir, 'train')
-    test_data = load_data(pkl_dir, 'test')
-    val_data = load_data(pkl_dir, 'val')
-    
+
     # Randomly select 100 indices
     train_indices = random.sample(range(len(train_data)), 100)
-    test_indices = random.sample(range(len(test_data)), 100)
-    val_indices = random.sample(range(len(val_data)), 100)
-    
+ 
     # Create subsets
     train_data = Subset(train_data, train_indices)
+    
+    test_data = load_data(pkl_dir, 'test')
+    test_indices = random.sample(range(len(test_data)), 100)
     test_data = Subset(test_data, test_indices)
+    
+    val_data = load_data(pkl_dir, 'val')
+    val_indices = random.sample(range(len(val_data)), 100)
     val_data = Subset(val_data, val_indices)
 
     class_to_data_map = {}
@@ -144,4 +146,10 @@ def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
 if __name__ == '__main__':
     pkl_dir="./class_attr_data_10/"
     #a= cub_classification_data(pkl_dir)
-    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,5)
+    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,0)
+    
+    with open("train_loader.pkl", "wb") as f:
+        pickle.dump(train_loader, f)
+        
+    with open("test_loader.pkl", "wb") as f:
+        pickle.dump(test_loader, f)
