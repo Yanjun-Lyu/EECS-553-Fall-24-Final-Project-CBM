@@ -21,7 +21,7 @@ def load_data(pkl_dir: str, split: str):
         except ValueError:
             img_path='/'.join(img_path_split[:2] + [split] + img_path_split[2:])
         
-        img_path=img_path.replace('CUB_200_2011', 'CUB_200')
+        img_path=img_path.replace('CUB_200_2011', 'CUB_200_2011')
         img_path=os.path.join(Path(pkl_dir).parent.parent, img_path)
         img=Image.open(img_path).convert('RGB')
 
@@ -127,3 +127,5 @@ def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
     test_loader=DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     return train_loader, test_loader
+
+train_loader, test_loader=get_cub_dataloaders("class_attr_data_10/",5,5)
