@@ -20,7 +20,7 @@ class LogisticRegressionModel(nn.Module):
         return self.linear(x)
     
 
-def predict_concept(num_concepts=100):
+def predict_concept(num_concepts=112):
     # Load pre-trained Inception-v3
     inception_v3 = models.inception_v3(pretrained=True)
     # Modify the last layer for binary concept predictions
@@ -33,7 +33,7 @@ def predict_concept(num_concepts=100):
 
 
     
-def predict_class(input_size, num_classes):
+def predict_class(input_size=112, num_classes=200):
    
     return LogisticRegressionModel(input_size, num_classes)
 
