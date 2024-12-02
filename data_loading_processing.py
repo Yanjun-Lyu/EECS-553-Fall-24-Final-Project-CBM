@@ -6,6 +6,9 @@ import torch
 import os
 from pathlib import Path
 
+from torch.utils.data import Subset
+import random
+
 
 def load_data(pkl_dir: str, split: str):
     data=pickle.load(open(f'{pkl_dir}/{split}.pkl', 'rb'))
@@ -21,7 +24,7 @@ def load_data(pkl_dir: str, split: str):
         except ValueError:
             img_path='/'.join(img_path_split[:2] + [split] + img_path_split[2:])
         
-        img_path=img_path.replace('CUB_200_2011', 'CUB_200')
+        img_path=img_path.replace('CUB_200_2011', 'CUB_200_2011')
         img_path=os.path.join(Path(pkl_dir).parent.parent, img_path)
         img=Image.open(img_path).convert('RGB')
 
@@ -95,6 +98,16 @@ def get_cub_data(pkl_dir: str):
     train_data = load_data(pkl_dir, 'train')
     test_data = load_data(pkl_dir, 'test')
     val_data = load_data(pkl_dir, 'val')
+    
+    # Randomly select 100 indices
+    train_indices = random.sample(range(len(train_data)), 100)
+    test_indices = random.sample(range(len(test_data)), 100)
+    val_indices = random.sample(range(len(val_data)), 100)
+    
+    # Create subsets
+    train_data = Subset(train_data, train_indices)
+    test_data = Subset(test_data, test_indices)
+    val_data = Subset(val_data, val_indices)
 
     class_to_data_map = {}
 
@@ -127,3 +140,8 @@ def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
     test_loader=DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
     return train_loader, test_loader
+
+if __name__ == '__main__':
+    pkl_dir="./class_attr_data_10/"
+    #a= cub_classification_data(pkl_dir)
+    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,5)
