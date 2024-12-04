@@ -146,10 +146,10 @@ def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
 if __name__ == '__main__':
     pkl_dir="./class_attr_data_10/"
     #a= cub_classification_data(pkl_dir)
-    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,0)
+    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,5)
     
-    with open("train_loader.pkl", "wb") as f:
+    with open("train_loader-numWork.pkl", "wb") as f:
         pickle.dump(train_loader, f)
         
-    with open("test_loader.pkl", "wb") as f:
+    with open("test_loader-numWork.pkl", "wb") as f:
         pickle.dump(test_loader, f)
