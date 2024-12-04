@@ -10,24 +10,40 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+import pickle
 
 # Example Data Preparation (concept predictions and species labels)
 # Assuming train_concepts_pred and train_species are already generated
 # train_concepts_pred: (N, num_concepts), train_species: (N,)
 # Use PyTorch tensors for DataLoader
-train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
-train_species = torch.tensor(train_species, dtype=torch.long)
 
-# Split into training and validation sets
-X_train, X_val, y_train, y_val = train_test_split(train_concepts_pred, train_species, test_size=0.2, random_state=42)
 
-# Create DataLoaders
-batch_size = 32
-train_dataset = TensorDataset(X_train, y_train)
-val_dataset = TensorDataset(X_val, y_val)
 
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size)
+# Set device
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+with open("train_loader.pkl", "rb") as f:
+    train_loader = pickle.load(f)
+
+# Recreate the DataLoader
+#train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+
+with open("test_loader.pkl", "rb") as f:
+    test_loader = pickle.load(f)
+
+# train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
+# train_species = torch.tensor(train_species, dtype=torch.long)
+
+# # Split into training and validation sets
+# X_train, X_val, y_train, y_val = train_test_split(train_concepts_pred, train_species, test_size=0.2, random_state=42)
+
+# # Create DataLoaders
+# batch_size = 32
+# train_dataset = TensorDataset(X_train, y_train)
+# val_dataset = TensorDataset(X_val, y_val)
+
+# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+# val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # Logistic Regression Model as a Single Linear Layer
 class LogisticRegressionModel(nn.Module):
@@ -37,22 +53,31 @@ class LogisticRegressionModel(nn.Module):
     
     def forward(self, x):
         return self.linear(x)
+    
+    
+for batch in train_loader:
+    images, concepts, labels = batch  # Adjust this to match your DataLoader's output structure
+    break
 
+# Get the input size and number of classes
+input_size = 112  # Number of features in the 'concepts' tensor
+num_classes = 200  # Number of unique labels
 # Initialize model, loss, and optimizer
-input_size = train_concepts_pred.shape[1]
-num_classes = len(torch.unique(train_species))
+
 model = LogisticRegressionModel(input_size, num_classes).to(device)
 
 criterion = nn.CrossEntropyLoss()  # Cross-Entropy Loss for multi-class classification
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training Loop
-num_epochs = 10
+num_epochs = 15
 for epoch in range(num_epochs):
     model.train()
-    for concepts, labels in train_loader:
-        concepts, labels = concepts.to(device), labels.to(device)
+    running_loss = 0.0
+    for _, concepts, labels in train_loader:
 
+        concepts, labels = concepts.to(device), labels.to(device)
+        labels = labels.squeeze(1).long()
         # Forward pass
         outputs = model(concepts)
         loss = criterion(outputs, labels)
@@ -61,13 +86,17 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-    
+        
+        running_loss += loss.item()
+        
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss / len(train_loader):.4f}")    
+    continue
     # Validation loop
     model.eval()
     val_loss = 0.0
     correct = 0
     total = 0
-    with torch.no_grad():
+'''    with torch.no_grad():
         for concepts, labels in val_loader:
             concepts, labels = concepts.to(device), labels.to(device)
             outputs = model(concepts)
@@ -78,7 +107,7 @@ for epoch in range(num_epochs):
     
     val_loss /= len(val_loader)
     accuracy = correct / total
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}, Val Accuracy: {accuracy:.4f}")
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}, Val Accuracy: {accuracy:.4f}")'''
 
 
 
