@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pickle
-#import data_loading_processing_ori
+import data_loading_processing_ori
 
 # Example Data Preparation (concept predictions and species labels)
 # Assuming train_concepts_pred and train_species are already generated
@@ -22,18 +22,20 @@ model_path = "./model_c-y_small_sample.pth"  # Replace with your desired path
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
+print(f"device={device}")
 pkl_dir="./class_attr_data_10/"
-#train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,5,5)
+train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
 
-with open("train_loader-2.pkl", "rb") as f:
-    train_loader = pickle.load(f)
+# with open("train_loader-2.pkl", "rb") as f:
+#     train_loader = pickle.load(f)
 
-# # Recreate the DataLoader
-# #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+# # # Recreate the DataLoader
+# # #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
 
-with open("test_loader-2.pkl", "rb") as f:
-    test_loader = pickle.load(f)
+# with open("test_loader-2.pkl", "rb") as f:
+#     test_loader = pickle.load(f)
+
+print("data loaded")
 
 # train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
 # train_species = torch.tensor(train_species, dtype=torch.long)
@@ -120,6 +122,10 @@ for epoch in range(num_epochs):
     
     accuracy = correct / total
     print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")    
+    
+
+    if epoch % 10 ==1:
+        torch.save(model.state_dict(), model_path)
     
 
 

@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from torch.utils.data import DataLoader, Dataset
-import data_loading_processing
+import data_loading_processing_ori
 import pickle
 from torchvision import transforms
 
@@ -17,7 +17,10 @@ from torchvision import transforms
 if __name__ == "__main__":
        
     model_path = "./model_x-c_small_sample.pth" 
+    # Set device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
+    print(f"device:{device}")
     # transform the normalize the image
     transform = transforms.Compose([
         transforms.Resize((299, 299)),  # Resize the images to 299x299
@@ -30,7 +33,7 @@ if __name__ == "__main__":
     #num of class = 200
     
     pkl_dir="./class_attr_data_10/"
-    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,5,5)
+    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
@@ -42,7 +45,9 @@ if __name__ == "__main__":
     
     with open("test_loader-2.pkl", "rb") as f:
         test_loader = pickle.load(f)
-    
+        
+        
+    print("data loaded")
     # Recreate the DataLoader
     #test_loader = DataLoader(loaded_test_loader, batch_size=10, shuffle=False)
     
@@ -54,8 +59,7 @@ if __name__ == "__main__":
         nn.Sigmoid()  # Binary classification
     )
     
-    # Set device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
     inception_v3 = inception_v3.to(device)
     
     # Define loss and optimizer
@@ -64,6 +68,8 @@ if __name__ == "__main__":
     
     # Training loop
     num_epochs=5
+    
+
     for epoch in range(num_epochs):
         inception_v3.train()  # Set model to training mode
         running_loss = 0.0
@@ -90,6 +96,37 @@ if __name__ == "__main__":
     
         # Print epoch results
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss / len(train_loader):.4f}")
+        
+        
+        inception_v3.eval()
+        val_loss = 0.0
+        correct = 0
+        total = 0
+        i=1
+        with torch.no_grad():
+            for images,concepts, labels in train_loader:
+                images_pil = [transforms.ToPILImage()(img) for img in images]
+                images = torch.stack([transform(img) for img in images_pil])
+                
+                outputs = inception_v3(images)
+                predictions = (outputs > 0.5).float()
+                correct+= (predictions == concepts).sum().item()
+
+                #correct += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
+                total += concepts.numel()
+                
+                
+
+        val_loss /= len(train_loader)
+        accuracy = correct / total
+        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")
+        
+
+        
+        if epoch % 10 ==1:
+            torch.save(inception_v3.state_dict(), model_path)
+        
+        
     # Save the model's state dictionary
     torch.save(inception_v3.state_dict(), model_path)
     #TODO
