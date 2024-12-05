@@ -18,7 +18,7 @@ import data_loading_processing_ori
 # train_concepts_pred: (N, num_concepts), train_species: (N,)
 # Use PyTorch tensors for DataLoader
 
-model_path = "./model_c-y_small_sample.pth"  # Replace with your desired path
+model_path = "./model_c-y_sample.pth"  # Replace with your desired path
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
