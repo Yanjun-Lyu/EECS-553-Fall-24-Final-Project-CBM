@@ -76,7 +76,7 @@ criterion = nn.CrossEntropyLoss()  # Cross-Entropy Loss for multi-class classifi
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training Loop
-num_epochs = 100
+num_epochs = 1000
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -107,6 +107,28 @@ for epoch in range(num_epochs):
     total = 0
     i=1
     with torch.no_grad():
+        for _,concepts, labels in train_loader:
+            concepts, labels = concepts.to(device), labels.to(device)
+            outputs = model(concepts)
+            #print(labels)
+
+            _, predicted = torch.max(outputs, dim=1)
+            #print(predicted)
+            labels=labels.squeeze()
+            correct += (predicted == labels).sum().item()
+            
+            total += labels.size(0)
+
+    
+    accuracy = correct / total
+    print(f"Epoch [{epoch+1}/{num_epochs}], train-accu: {(accuracy):.4f}")    
+    
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    total = 0
+    i=1
+    with torch.no_grad():
         for _,concepts, labels in test_loader:
             concepts, labels = concepts.to(device), labels.to(device)
             outputs = model(concepts)
@@ -121,13 +143,13 @@ for epoch in range(num_epochs):
 
     
     accuracy = correct / total
-    print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")    
+    print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")  
     
 
     if epoch % 10 ==1:
         torch.save(model.state_dict(), model_path)
-    
 
+    
 
 
 
