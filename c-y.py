@@ -18,7 +18,7 @@ import pickle
 # train_concepts_pred: (N, num_concepts), train_species: (N,)
 # Use PyTorch tensors for DataLoader
 
-
+model_path = "./model_c-y_small_sample.pth"  # Replace with your desired path
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -123,10 +123,10 @@ for epoch in range(num_epochs):
     
 
 
-model_path = "./model.pth"  # Replace with your desired path
+
 
 # Save the model's state dictionary
-torch.save(model.state_dict(), "./model_weights.pth")
+torch.save(model.state_dict(), model_path)
 
 
 ################## human intervention on predicted concepts ###################

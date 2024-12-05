@@ -15,7 +15,9 @@ from torchvision import transforms
 
 
 if __name__ == "__main__":
-        
+       
+    model_path = "./model_x-c_small_sample.pth" 
+    
     # transform the normalize the image
     transform = transforms.Compose([
         transforms.Resize((299, 299)),  # Resize the images to 299x299
@@ -32,13 +34,13 @@ if __name__ == "__main__":
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
-    with open("train_loader-numWork.pkl", "rb") as f:
+    with open("train_loader-2.pkl", "rb") as f:
         train_loader = pickle.load(f)
     
     # Recreate the DataLoader
     #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
     
-    with open("test_loader-numWork.pkl", "rb") as f:
+    with open("test_loader-2.pkl", "rb") as f:
         test_loader = pickle.load(f)
     
     # Recreate the DataLoader
@@ -88,7 +90,8 @@ if __name__ == "__main__":
     
         # Print epoch results
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss / len(train_loader):.4f}")
-    
+    # Save the model's state dictionary
+    torch.save(inception_v3.state_dict(), model_path)
     #TODO
     ################## Model save and load #####################
     
