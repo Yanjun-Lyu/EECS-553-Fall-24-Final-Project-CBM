@@ -16,7 +16,7 @@ from torchvision import transforms
 
 if __name__ == "__main__":
        
-    model_path = "./model_x-c_all_sample.pth" 
+    model_path = "./model_x-c_small_sample.pth" 
     # Set device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -33,18 +33,18 @@ if __name__ == "__main__":
     #num of class = 200
     
     pkl_dir="./class_attr_data_10/"
-    train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
+    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
-    #with open("train_loader-2.pkl", "rb") as f:
-    #    train_loader = pickle.load(f)
+    with open("train_loader-2.pkl", "rb") as f:
+        train_loader = pickle.load(f)
     
     # Recreate the DataLoader
-    #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+    # train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
     
-   # with open("test_loader-2.pkl", "rb") as f:
-   #     test_loader = pickle.load(f)
+    with open("test_loader-2.pkl", "rb") as f:
+        test_loader = pickle.load(f)
         
         
     print("data loaded")
@@ -100,8 +100,8 @@ if __name__ == "__main__":
         
         inception_v3.eval()
         val_loss = 0.0
-        correct = 0
-        total = 0
+        correct,correct_all = 0,0
+        total,total_all = 0,0
         i=1
         with torch.no_grad():
             for images,concepts, labels in train_loader:
@@ -112,19 +112,22 @@ if __name__ == "__main__":
                 predictions = (outputs > 0.5).float()
                 correct+= (predictions == concepts).sum().item()
 
-                #correct += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
+                correct_all += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
                 total += concepts.numel()
+                total_all += concepts.size(0)
                 
                 
 
         val_loss /= len(train_loader)
         accuracy = correct / total
-        print(f"Epoch [{epoch+1}/{num_epochs}], train-accu: {(accuracy):.4f}")
+        accuracy_all  =correct_all/total_all
+        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu_all: {(accuracy_all):.4f}")
         
         inception_v3.eval()
         val_loss = 0.0
-        correct = 0
-        total = 0
+        correct,correct_all = 0,0
+        total,total_all = 0,0
         i=1
         with torch.no_grad():
             for images,concepts, labels in test_loader:
@@ -134,15 +137,17 @@ if __name__ == "__main__":
                 outputs = inception_v3(images)
                 predictions = (outputs > 0.5).float()
                 correct+= (predictions == concepts).sum().item()
-
-                #correct += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
+                correct_all += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
                 total += concepts.numel()
+                total_all += concepts.size(0)
                 
                 
 
         val_loss /= len(train_loader)
         accuracy = correct / total
+        accuracy_all  =correct_all/total_all
         print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu_all: {(accuracy_all):.4f}")
         
         
         if epoch % 10 ==1:
