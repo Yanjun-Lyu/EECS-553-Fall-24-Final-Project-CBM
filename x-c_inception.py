@@ -27,8 +27,8 @@ if __name__ == "__main__":
     #num of concept = 112
     #num of class = 200
     
-    # pkl_dir="./class_attr_data_10/"
-    # train_loader, test_loader = data_loading_processing.get_cub_dataloaders(pkl_dir,5,5)
+    pkl_dir="./class_attr_data_10/"
+    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,5,5)
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
