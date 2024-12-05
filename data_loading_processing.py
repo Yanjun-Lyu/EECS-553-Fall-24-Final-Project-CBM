@@ -71,9 +71,26 @@ def get_transforms(resol=224, resized_resol=299):
 
 
 def cub_classification_data(pkl_dir: str):
+    # train_data = load_data(pkl_dir, 'train')
+    # test_data = load_data(pkl_dir, 'test')
+    # val_data = load_data(pkl_dir, 'val')
+
     train_data = load_data(pkl_dir, 'train')
+
+    # Randomly select 100 indices
+    train_indices = random.sample(range(len(train_data)), 100)
+ 
+    # Create subsets
+    train_data = Subset(train_data, train_indices)
+    
     test_data = load_data(pkl_dir, 'test')
+    test_indices = random.sample(range(len(test_data)), 100)
+    test_data = Subset(test_data, test_indices)
+    
     val_data = load_data(pkl_dir, 'val')
+    val_indices = random.sample(range(len(val_data)), 100)
+    val_data = Subset(val_data, val_indices)
+
 
     train_transform, test_transform = get_transforms()
 
@@ -146,10 +163,10 @@ def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
 if __name__ == '__main__':
     pkl_dir="./class_attr_data_10/"
     #a= cub_classification_data(pkl_dir)
-    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,0)
+    train_loader, test_loader, _ = get_cub_classification_dataloaders(pkl_dir,5,0)
     
-    with open("train_loader-noShuffle.pkl", "wb") as f:
+    with open("train_loader-2.pkl", "wb") as f:
         pickle.dump(train_loader, f)
         
-    with open("test_loader-noShuffle.pkl", "wb") as f:
+    with open("test_loader-2.pkl", "wb") as f:
         pickle.dump(test_loader, f)

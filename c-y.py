@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pickle
-import data_loading_processing_ori
+#import data_loading_processing_ori
 
 # Example Data Preparation (concept predictions and species labels)
 # Assuming train_concepts_pred and train_species are already generated
@@ -22,18 +22,18 @@ import data_loading_processing_ori
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+print(device)
 pkl_dir="./class_attr_data_10/"
-train_loader, test_loader = data_loading_processing_ori.get_cub_dataloaders(pkl_dir,5,5)
+#train_loader, test_loader = data_loading_processing_ori.get_cub_dataloaders(pkl_dir,5,5)
 
-# with open("train_loader.pkl", "rb") as f:
-#     train_loader = pickle.load(f)
+with open("train_loader-2.pkl", "rb") as f:
+    train_loader = pickle.load(f)
 
 # # Recreate the DataLoader
 # #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
 
-# with open("test_loader.pkl", "rb") as f:
-#     test_loader = pickle.load(f)
+with open("test_loader-2.pkl", "rb") as f:
+    test_loader = pickle.load(f)
 
 # train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
 # train_species = torch.tensor(train_species, dtype=torch.long)
@@ -74,7 +74,7 @@ criterion = nn.CrossEntropyLoss()  # Cross-Entropy Loss for multi-class classifi
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training Loop
-num_epochs = 15
+num_epochs = 100
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -82,6 +82,7 @@ for epoch in range(num_epochs):
 
         concepts, labels = concepts.to(device), labels.to(device)
         labels = labels.squeeze(1).long()
+        #print(labels)
         # Forward pass
         outputs = model(concepts)
         loss = criterion(outputs, labels)
@@ -107,9 +108,10 @@ for epoch in range(num_epochs):
         for _,concepts, labels in test_loader:
             concepts, labels = concepts.to(device), labels.to(device)
             outputs = model(concepts)
-            # if i==1:print(labels)
-            # i=0
+            #print(labels)
+
             _, predicted = torch.max(outputs, dim=1)
+            #print(predicted)
             labels=labels.squeeze()
             correct += (predicted == labels).sum().item()
             
