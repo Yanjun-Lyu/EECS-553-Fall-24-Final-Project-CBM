@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pickle
+import data_loading_processing_ori
 
 # Example Data Preparation (concept predictions and species labels)
 # Assuming train_concepts_pred and train_species are already generated
@@ -22,14 +23,17 @@ import pickle
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-with open("train_loader.pkl", "rb") as f:
-    train_loader = pickle.load(f)
+pkl_dir="./class_attr_data_10/"
+train_loader, test_loader = data_loading_processing_ori.get_cub_dataloaders(pkl_dir,5,5)
 
-# Recreate the DataLoader
-#train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+# with open("train_loader.pkl", "rb") as f:
+#     train_loader = pickle.load(f)
 
-with open("test_loader.pkl", "rb") as f:
-    test_loader = pickle.load(f)
+# # Recreate the DataLoader
+# #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+
+# with open("test_loader.pkl", "rb") as f:
+#     test_loader = pickle.load(f)
 
 # train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
 # train_species = torch.tensor(train_species, dtype=torch.long)
@@ -90,25 +94,37 @@ for epoch in range(num_epochs):
         running_loss += loss.item()
         
     print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss / len(train_loader):.4f}")    
-    continue
-    # Validation loop
+    
+    # test loop
+
+    
     model.eval()
     val_loss = 0.0
     correct = 0
     total = 0
-'''    with torch.no_grad():
-        for concepts, labels in val_loader:
+    i=1
+    with torch.no_grad():
+        for _,concepts, labels in test_loader:
             concepts, labels = concepts.to(device), labels.to(device)
             outputs = model(concepts)
-            val_loss += criterion(outputs, labels).item()
+            # if i==1:print(labels)
+            # i=0
             _, predicted = torch.max(outputs, dim=1)
+            labels=labels.squeeze()
             correct += (predicted == labels).sum().item()
+            
             total += labels.size(0)
-    
-    val_loss /= len(val_loader)
-    accuracy = correct / total
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}, Val Accuracy: {accuracy:.4f}")'''
 
+    
+    accuracy = correct / total
+    print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")    
+    
+
+
+model_path = "./model.pth"  # Replace with your desired path
+
+# Save the model's state dictionary
+torch.save(model.state_dict(), "./model_weights.pth")
 
 
 ################## human intervention on predicted concepts ###################

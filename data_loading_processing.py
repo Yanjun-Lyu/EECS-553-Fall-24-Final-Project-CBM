@@ -138,18 +138,18 @@ def get_cub_data(pkl_dir: str):
 
 def get_cub_dataloaders(pkl_dir: str, batch_size: int, num_workers: int):
     train_dataset, test_dataset = get_cub_data(pkl_dir)
-    train_loader=DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_loader=DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    train_loader=DataLoader(train_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    test_loader=DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     return train_loader, test_loader
 
 if __name__ == '__main__':
     pkl_dir="./class_attr_data_10/"
     #a= cub_classification_data(pkl_dir)
-    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,5)
+    train_loader, test_loader = get_cub_dataloaders(pkl_dir,5,0)
     
-    with open("train_loader-numWork.pkl", "wb") as f:
+    with open("train_loader-noShuffle.pkl", "wb") as f:
         pickle.dump(train_loader, f)
         
-    with open("test_loader-numWork.pkl", "wb") as f:
+    with open("test_loader-noShuffle.pkl", "wb") as f:
         pickle.dump(test_loader, f)
