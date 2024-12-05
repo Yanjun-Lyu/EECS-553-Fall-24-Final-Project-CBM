@@ -16,7 +16,7 @@ from torchvision import transforms
 
 if __name__ == "__main__":
        
-    model_path = "./model_x-c_small_sample.pth" 
+    model_path = "./model_x-c_all_sample.pth" 
     # Set device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -33,18 +33,18 @@ if __name__ == "__main__":
     #num of class = 200
     
     pkl_dir="./class_attr_data_10/"
-    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
+    train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
-    with open("train_loader-2.pkl", "rb") as f:
-        train_loader = pickle.load(f)
+    # with open("train_loader-2.pkl", "rb") as f:
+    #     train_loader = pickle.load(f)
     
-    # Recreate the DataLoader
-    # train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
+    # # Recreate the DataLoader
+    # # train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
     
-    with open("test_loader-2.pkl", "rb") as f:
-        test_loader = pickle.load(f)
+    # with open("test_loader-2.pkl", "rb") as f:
+    #     test_loader = pickle.load(f)
         
         
     print("data loaded")
