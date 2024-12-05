@@ -33,18 +33,18 @@ if __name__ == "__main__":
     #num of class = 200
     
     pkl_dir="./class_attr_data_10/"
-    #train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
+    train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,64,8)
     "train-test data are stored in file. Generated from data_loading_processing"
     #TODO: check multi-processing, as the keyword "num_work"
     # Load the dataset
-    with open("train_loader-2.pkl", "rb") as f:
-        train_loader = pickle.load(f)
+    #with open("train_loader-2.pkl", "rb") as f:
+    #    train_loader = pickle.load(f)
     
     # Recreate the DataLoader
     #train_loader = DataLoader(loaded_train_loader, batch_size=5, shuffle=False)# Load the dataset
     
-    with open("test_loader-2.pkl", "rb") as f:
-        test_loader = pickle.load(f)
+   # with open("test_loader-2.pkl", "rb") as f:
+   #     test_loader = pickle.load(f)
         
         
     print("data loaded")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(inception_v3.parameters(), lr=1e-4)
     
     # Training loop
-    num_epochs=5
+    num_epochs=1000
     
 
     for epoch in range(num_epochs):
@@ -107,7 +107,30 @@ if __name__ == "__main__":
             for images,concepts, labels in train_loader:
                 images_pil = [transforms.ToPILImage()(img) for img in images]
                 images = torch.stack([transform(img) for img in images_pil])
+                images, concepts = images.to(device), concepts.to(device)
+                outputs = inception_v3(images)
+                predictions = (outputs > 0.5).float()
+                correct+= (predictions == concepts).sum().item()
+
+                #correct += (predictions == concepts).all(dim=1).sum().item()  # Check if all labels match
+                total += concepts.numel()
                 
+                
+
+        val_loss /= len(train_loader)
+        accuracy = correct / total
+        print(f"Epoch [{epoch+1}/{num_epochs}], train-accu: {(accuracy):.4f}")
+        
+        inception_v3.eval()
+        val_loss = 0.0
+        correct = 0
+        total = 0
+        i=1
+        with torch.no_grad():
+            for images,concepts, labels in test_loader:
+                images_pil = [transforms.ToPILImage()(img) for img in images]
+                images = torch.stack([transform(img) for img in images_pil])
+                images, concepts = images.to(device), concepts.to(device)
                 outputs = inception_v3(images)
                 predictions = (outputs > 0.5).float()
                 correct+= (predictions == concepts).sum().item()
@@ -121,7 +144,6 @@ if __name__ == "__main__":
         accuracy = correct / total
         print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")
         
-
         
         if epoch % 10 ==1:
             torch.save(inception_v3.state_dict(), model_path)
