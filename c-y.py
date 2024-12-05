@@ -24,7 +24,7 @@ import pickle
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 pkl_dir="./class_attr_data_10/"
-#train_loader, test_loader = data_loading_processing_ori.get_cub_dataloaders(pkl_dir,5,5)
+#train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification_dataloaders(pkl_dir,5,5)
 
 with open("train_loader-2.pkl", "rb") as f:
     train_loader = pickle.load(f)
