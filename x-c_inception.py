@@ -121,8 +121,8 @@ if __name__ == "__main__":
         val_loss /= len(train_loader)
         accuracy = correct / total
         accuracy_all  =correct_all/total_all
-        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")
-        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu_all: {(accuracy_all):.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], train-accu: {(accuracy):.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], train-accu_all: {(accuracy_all):.4f}")
         
         inception_v3.eval()
         val_loss = 0.0
