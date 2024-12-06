@@ -7,19 +7,29 @@ Created on Sun Dec  1 12:00:28 2024
 
 import torch
 import torch.nn as nn
+import torchvision.models as models
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pickle
 import data_loading_processing_ori
+from torchvision import transforms
 
+        # transform the normalize the image
+transform = transforms.Compose([
+    transforms.Resize((299, 299)),  # Resize the images to 299x299
+    transforms.ToTensor(),  # Convert image to tensor
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization for InceptionV3
+])
+        
 # Example Data Preparation (concept predictions and species labels)
 # Assuming train_concepts_pred and train_species are already generated
 # train_concepts_pred: (N, num_concepts), train_species: (N,)
 # Use PyTorch tensors for DataLoader
 
 model_path = "./model_c-y_sample.pth"  # Replace with your desired path
-
+Load_model_path="./model_x-c_all_sample.pth"
+batch_size, num_workers = 64,5
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"device={device}")
@@ -37,19 +47,71 @@ train_loader, test_loader,_ = data_loading_processing_ori.get_cub_classification
 
 print("data loaded")
 
-# train_concepts_pred = torch.tensor(train_concepts_pred, dtype=torch.float32)
-# train_species = torch.tensor(train_species, dtype=torch.long)
+ # Load pre-trained Inception-v3
+inception_v3 = models.inception_v3(weights=None)
+# Modify the last layer for binary concept predictions
+inception_v3.fc = nn.Sequential(
+    nn.Linear(inception_v3.fc.in_features, 112),
+    nn.Sigmoid()  # Binary classification
+)
+inception_v3.load_state_dict(torch.load(Load_model_path,weights_only=True))
 
-# # Split into training and validation sets
-# X_train, X_val, y_train, y_val = train_test_split(train_concepts_pred, train_species, test_size=0.2, random_state=42)
+inception_v3 = inception_v3.to(device)
 
-# # Create DataLoaders
-# batch_size = 32
-# train_dataset = TensorDataset(X_train, y_train)
-# val_dataset = TensorDataset(X_val, y_val)
+inception_v3.eval()
 
-# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-# val_loader = DataLoader(val_dataset, batch_size=batch_size)
+# predicted_concepts_train = []
+# ori_labels_train = []
+# with torch.no_grad():
+#     for images,concepts, labels in train_loader:
+#         images_pil = [transforms.ToPILImage()(img) for img in images]
+#         images = torch.stack([transform(img) for img in images_pil])
+        
+#         outputs = inception_v3(images)
+#         predictions = (outputs > 0.5).float()
+        
+#         ori_labels_train.extend(labels.cpu())
+#         predicted_concepts_train.extend(predictions.cpu())
+        
+# ori_labels_train = torch.stack(ori_labels_train)
+# predicted_concepts_train = torch.stack(predicted_concepts_train)
+
+# predicted_train_loader = TensorDataset(predicted_concepts_train,ori_labels_train)
+
+# predicted_train_loader = DataLoader(predicted_train_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
+predicted_concepts_test = []
+ori_labels_test = []
+with torch.no_grad():
+    for images,concepts, labels in test_loader:
+        images_pil = [transforms.ToPILImage()(img) for img in images]
+        images = torch.stack([transform(img) for img in images_pil])
+        
+        outputs = inception_v3(images)
+        predictions = (outputs > 0.5).float()
+        
+        ori_labels_test.extend(labels.cpu())
+        predicted_concepts_test.extend(predictions.cpu())
+        
+ori_labels_test = torch.stack(ori_labels_test)
+predicted_concepts_test = torch.stack(predicted_concepts_test)
+
+predicted_test_loader = TensorDataset(predicted_concepts_test,ori_labels_test)
+
+predicted_test_loader = DataLoader(predicted_test_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
+
+del inception_v3
+
+
+
+
+
+
+
+
+
+
 
 # Logistic Regression Model as a Single Linear Layer
 class LogisticRegressionModel(nn.Module):
@@ -129,7 +191,7 @@ for epoch in range(num_epochs):
     total = 0
     i=1
     with torch.no_grad():
-        for _,concepts, labels in test_loader:
+        for concepts, labels in predicted_test_loader:
             concepts, labels = concepts.to(device), labels.to(device)
             outputs = model(concepts)
             #print(labels)

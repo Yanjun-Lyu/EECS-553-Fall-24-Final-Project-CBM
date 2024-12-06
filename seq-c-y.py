@@ -57,8 +57,7 @@ if __name__ == "__main__":
     
     
     
-    predicted_concepts = []
-    ori_labels = []
+
     
      # Load pre-trained Inception-v3
     inception_v3 = models.inception_v3(weights=None)
@@ -72,10 +71,9 @@ if __name__ == "__main__":
     inception_v3 = inception_v3.to(device)
     
     inception_v3.eval()
-    val_loss = 0.0
-    correct = 0
-    total = 0
-    i=1
+
+    predicted_concepts_train = []
+    ori_labels_train = []
     with torch.no_grad():
         for images,concepts, labels in train_loader:
             images_pil = [transforms.ToPILImage()(img) for img in images]
@@ -84,15 +82,36 @@ if __name__ == "__main__":
             outputs = inception_v3(images)
             predictions = (outputs > 0.5).float()
             
-            ori_labels.extend(labels.cpu())
-            predicted_concepts.extend(predictions.cpu())
+            ori_labels_train.extend(labels.cpu())
+            predicted_concepts_train.extend(predictions.cpu())
             
-    ori_labels = torch.stack(ori_labels)
-    predicted_concepts = torch.stack(predicted_concepts)
+    ori_labels_train = torch.stack(ori_labels_train)
+    predicted_concepts_train = torch.stack(predicted_concepts_train)
     
-    predicted_loader = TensorDataset(predicted_concepts,ori_labels)
+    predicted_train_loader = TensorDataset(predicted_concepts_train,ori_labels_train)
     
-    predicted_loader = DataLoader(predicted_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    predicted_train_loader = DataLoader(predicted_train_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    
+    predicted_concepts_test = []
+    ori_labels_test = []
+    with torch.no_grad():
+        for images,concepts, labels in test_loader:
+            images_pil = [transforms.ToPILImage()(img) for img in images]
+            images = torch.stack([transform(img) for img in images_pil])
+            
+            outputs = inception_v3(images)
+            predictions = (outputs > 0.5).float()
+            
+            ori_labels_test.extend(labels.cpu())
+            predicted_concepts_test.extend(predictions.cpu())
+            
+    ori_labels_test = torch.stack(ori_labels_test)
+    predicted_concepts_test = torch.stack(predicted_concepts_test)
+    
+    predicted_test_loader = TensorDataset(predicted_concepts_test,ori_labels_test)
+    
+    predicted_test_loader = DataLoader(predicted_test_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    
     
     del inception_v3
     
@@ -153,7 +172,7 @@ if __name__ == "__main__":
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
-        for concepts, labels in predicted_loader:
+        for concepts, labels in predicted_train_loader:
     
             concepts, labels = concepts.to(device), labels.to(device)
             labels = labels.squeeze(1).long()
@@ -180,7 +199,7 @@ if __name__ == "__main__":
         total = 0
         i=1
         with torch.no_grad():
-            for concepts, labels in predicted_loader:
+            for concepts, labels in predicted_train_loader:
                 concepts, labels = concepts.to(device), labels.to(device)
                 outputs = model(concepts)
                 #print(labels)
@@ -202,7 +221,7 @@ if __name__ == "__main__":
         total = 0
         i=1
         with torch.no_grad():
-            for _,concepts, labels in test_loader:
+            for concepts, labels in predicted_test_loader:
                 concepts, labels = concepts.to(device), labels.to(device)
                 outputs = model(concepts)
                 #print(labels)
