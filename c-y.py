@@ -27,7 +27,7 @@ transform = transforms.Compose([
 # train_concepts_pred: (N, num_concepts), train_species: (N,)
 # Use PyTorch tensors for DataLoader
 
-model_path = "./model_c-y_sample.pth"  # Replace with your desired path
+model_path = "./model_c-y_all_sample.pth"  # Replace with your desired path
 Load_model_path="./model_x-c_all_sample.pth"
 batch_size, num_workers = 64,5
 # Set device
