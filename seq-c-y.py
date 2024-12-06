@@ -237,7 +237,28 @@ if __name__ == "__main__":
         accuracy = correct / total
         print(f"Epoch [{epoch+1}/{num_epochs}], test-accu: {(accuracy):.4f}")  
         
+        model.eval()
+        val_loss = 0.0
+        correct = 0
+        total = 0
+        i=1
+        with torch.no_grad():
+            for _,concepts, labels in test_loader:
+                concepts, labels = concepts.to(device), labels.to(device)
+                outputs = model(concepts)
+                #print(labels)
     
+                _, predicted = torch.max(outputs, dim=1)
+                #print(predicted)
+                labels=labels.squeeze()
+                correct += (predicted == labels).sum().item()
+                
+                total += labels.size(0)
+    
+        
+        accuracy = correct / total
+        print(f"Epoch [{epoch+1}/{num_epochs}], test-accu_c-y: {(accuracy):.4f}") 
+        
         if epoch % 10 ==1:
             torch.save(model.state_dict(), model_path)
     
