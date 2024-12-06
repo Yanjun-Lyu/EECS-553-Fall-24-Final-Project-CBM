@@ -61,15 +61,14 @@ if __name__ == "__main__":
     ori_labels = []
     
      # Load pre-trained Inception-v3
-    inception_v3 = models.inception_v3(weights="Inception_V3_Weights.DEFAULT")
+    inception_v3 = models.inception_v3(weights=None)
     # Modify the last layer for binary concept predictions
     inception_v3.fc = nn.Sequential(
         nn.Linear(inception_v3.fc.in_features, 112),
         nn.Sigmoid()  # Binary classification
     )
     inception_v3.load_state_dict(torch.load(Load_model_path,weights_only=True))
-    # Set device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     inception_v3 = inception_v3.to(device)
     
     inception_v3.eval()
@@ -95,7 +94,7 @@ if __name__ == "__main__":
     
     predicted_loader = DataLoader(predicted_loader, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     
-    
+    del inception_v3
     
     
     
